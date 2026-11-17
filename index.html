@@ -1,0 +1,1013 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Drive Home</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Fredoka:wght@500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: one tall map of a winding road (supermarket top left, home bottom left, ten landmarks between), with an arrow button under it that drives to the next stop. Each stop opens a two-sentence card as a dialog. */
+:root{
+  --bg:#EEF1F6;
+  --surface:#FFFFFF;
+  --surface-2:#E4E9F1;
+  --fg:#16202E;
+  --muted:#586A80;
+  --line:#C9D2DE;
+  --accent:#D6195F;
+  --accent-fg:#FFFFFF;
+  --grass:#BFE3B4;
+  --grass2:#B1D8A5;
+  --tree:#3E9B57;
+  --tree2:#58B56C;
+  --trunk:#8A5A44;
+  --water:#7CC4EC;
+  --water2:#A6D9F4;
+  --road:#4A5361;
+  --edge:#2F3640;
+  --lane:#F4D35E;
+  --cloud:#FFFFFF;
+  --good:#12805C;
+  --good-bg:#DDF3EA;
+  --bad:#B3261E;
+  --bad-bg:#FBE4E2;
+  --heart:#E0245E;
+  --backdrop:rgba(14,21,32,.55);
+  --font-display:'Fredoka','Trebuchet MS',system-ui,sans-serif;
+  --font-body:'Andika','Verdana',system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1520;
+    --surface:#16212F;
+    --surface-2:#1F2D3F;
+    --fg:#E8EFF7;
+    --muted:#98A9BC;
+    --line:#2B3C50;
+    --accent:#FF5C96;
+    --accent-fg:#2B0716;
+    --grass:#244631;
+    --grass2:#1E3D2A;
+    --tree:#2F7D49;
+    --tree2:#3E9B5E;
+    --trunk:#6E4B3A;
+    --water:#2C6A93;
+    --water2:#3A82B0;
+    --road:#5A6577;
+    --edge:#1A2029;
+    --lane:#E6C453;
+    --cloud:#C9D7E6;
+    --good:#4FD1A0;
+    --good-bg:#143B2E;
+    --bad:#FF8A80;
+    --bad-bg:#43201E;
+    --heart:#FF5C8A;
+    --backdrop:rgba(0,0,0,.65);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1520;
+  --surface:#16212F;
+  --surface-2:#1F2D3F;
+  --fg:#E8EFF7;
+  --muted:#98A9BC;
+  --line:#2B3C50;
+  --accent:#FF5C96;
+  --accent-fg:#2B0716;
+  --grass:#244631;
+  --grass2:#1E3D2A;
+  --tree:#2F7D49;
+  --tree2:#3E9B5E;
+  --trunk:#6E4B3A;
+  --water:#2C6A93;
+  --water2:#3A82B0;
+  --road:#5A6577;
+  --edge:#1A2029;
+  --lane:#E6C453;
+  --cloud:#C9D7E6;
+  --good:#4FD1A0;
+  --good-bg:#143B2E;
+  --bad:#FF8A80;
+  --bad-bg:#43201E;
+  --heart:#FF5C8A;
+  --backdrop:rgba(0,0,0,.65);
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:17px;line-height:1.45}
+button{font-family:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--fg);outline-offset:3px}
+
+.page{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:24px 48px;display:flex;flex-direction:column;gap:18px}
+h1{margin:0;font:600 clamp(1.9rem,5vw,2.6rem)/1.1 var(--font-display);text-wrap:balance}
+.sub{margin:6px 0 0;color:var(--muted);max-width:56ch}
+
+.bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 20px}
+fieldset{border:0;margin:0;padding:0;min-width:0}
+legend{padding:0;margin:0 0 6px;font-size:.75rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.opts{display:flex;flex-wrap:wrap;gap:6px}
+.opt{position:relative}
+.opt input{position:absolute;inset:0;width:100%;height:100%;opacity:0;margin:0;cursor:pointer}
+.opt label{display:block;padding:9px 16px;border:1.5px solid var(--line);border-radius:999px;background:var(--surface);font-size:.95rem}
+.opt input:checked + label{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.opt input:focus-visible + label{outline:3px solid var(--fg);outline-offset:3px}
+
+.hearts{display:flex;align-items:center;gap:6px;min-height:34px}
+.hearts[hidden]{display:none}
+.hearts .lbl{font-size:.75rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-right:4px}
+.heart{width:30px;height:30px;display:block}
+.heart path{fill:var(--heart);stroke:var(--heart);stroke-width:2;stroke-linejoin:round}
+.heart.lost path{fill:none;stroke:var(--muted)}
+.heart.pulse{animation:beat .5s}
+@keyframes beat{0%{transform:scale(1)}40%{transform:scale(.7) rotate(-8deg)}100%{transform:scale(1)}}
+
+.scene{background:var(--surface);border:1px solid var(--line);border-radius:20px;overflow:hidden;display:flex;flex-direction:column}
+.status{margin:0;padding:14px 18px 10px;display:flex;justify-content:space-between;align-items:baseline;gap:4px 12px;font:600 1.15rem var(--font-display);flex-wrap:wrap}
+.status span:last-child{color:var(--muted);font:400 .9rem var(--font-body)}
+
+.mapwrap{background:var(--grass);line-height:0}
+#map{display:block;width:100%;max-width:640px;height:auto;margin-inline:auto}
+.f-grass{fill:var(--grass)} .f-grass2{fill:var(--grass2)}
+.f-tree{fill:var(--tree)} .f-tree2{fill:var(--tree2)} .f-trunk{fill:var(--trunk)}
+.f-water{fill:var(--water)} .f-water2{fill:var(--water2)}
+.f-cloud{fill:var(--cloud)}
+.s-edge{stroke:var(--edge)} .s-road{stroke:var(--road)} .s-lane{stroke:var(--lane)}
+.lbl{font:600 15px var(--font-display);fill:var(--fg);paint-order:stroke;stroke:var(--surface);stroke-width:4px;stroke-linejoin:round}
+.badge circle.b{fill:var(--surface);stroke:var(--fg);stroke-width:2.5}
+.badge text{font:600 15px var(--font-display);fill:var(--fg);text-anchor:middle;dominant-baseline:central}
+.badge.done circle.b{fill:var(--good);stroke:var(--good)}
+.badge.done text{fill:#fff}
+.badge .glow{fill:none;stroke:var(--accent);stroke-width:4;opacity:0}
+.badge.now .glow{opacity:1}
+.badge.now circle.b{stroke:var(--accent)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .badge.done text{color:#0E1520;fill:#0E1520}}
+:root[data-theme="dark"] .badge.done text{fill:#0E1520}
+.puff{animation:puff 3.2s ease-out infinite;transform-box:fill-box;transform-origin:center}
+.puff.p2{animation-delay:1.6s}
+@keyframes puff{0%{transform:translate(0,0) scale(.5);opacity:.9}100%{transform:translate(10px,-26px) scale(1.4);opacity:0}}
+.cloud{animation:drift 38s ease-in-out infinite alternate}
+.cloud.c2{animation-duration:52s;animation-delay:-14s}
+.cloud.c3{animation-duration:44s;animation-delay:-28s}
+@keyframes drift{from{transform:translateX(-26px)}to{transform:translateX(34px)}}
+
+.controls{padding:14px 18px 20px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.msg{margin:0;text-align:center;min-height:1.5em}
+.go{display:inline-flex;align-items:center;gap:14px;font:600 1.35rem/1 var(--font-display);padding:12px 14px 12px 28px;border-radius:999px;border:0;background:var(--accent);color:var(--accent-fg);cursor:pointer;min-height:64px}
+.go svg{width:42px;height:42px;flex:0 0 auto;background:var(--accent-fg);border-radius:50%;padding:8px}
+.go svg path{stroke:var(--accent);fill:none;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
+.go:hover:not(:disabled){filter:brightness(1.06)}
+.go:disabled{opacity:.5;cursor:not-allowed}
+.go[hidden]{display:none}
+.go.nudge svg{animation:nudge 1s ease-in-out infinite}
+@keyframes nudge{0%,100%{transform:translateX(0)}50%{transform:translateX(5px)}}
+
+/* card */
+.overlay{position:fixed;inset:0;background:var(--backdrop);display:flex;align-items:center;justify-content:center;padding:16px;z-index:20;overflow:auto}
+.overlay[hidden]{display:none}
+.card{background:var(--surface);border-radius:22px;padding:24px;width:min(100%,560px);display:flex;flex-direction:column;gap:16px;box-shadow:0 20px 60px rgba(0,0,0,.35);animation:rise .28s ease-out}
+.card.closing{animation:fall .2s ease-in forwards}
+@keyframes rise{from{transform:translateY(24px) scale(.96);opacity:0}to{transform:none;opacity:1}}
+@keyframes fall{to{transform:translateY(16px) scale(.96);opacity:0}}
+.eyebrow{margin:0;font-size:.78rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.card h2{margin:0;font:600 1.5rem/1.2 var(--font-display);text-wrap:balance}
+.card .hint{margin:-8px 0 0;color:var(--muted);font-size:.95rem}
+.options{display:flex;flex-direction:column;gap:10px}
+.option{font:700 1.2rem/1.3 var(--font-body);padding:16px 18px;border-radius:14px;border:2px solid var(--line);background:var(--surface-2);cursor:pointer;text-align:left;min-height:60px;display:flex;align-items:center;gap:12px}
+.option:hover:not(:disabled){border-color:var(--fg)}
+.option .mk{flex:0 0 auto;width:1.5em;text-align:center;font-weight:700}
+.option .mk:empty{display:none}
+.option.shake{animation:shake .35s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.option.wrong{opacity:.55;text-decoration:line-through;background:var(--bad-bg);border-color:var(--bad)}
+.option.right{background:var(--good-bg);border-color:var(--good);color:var(--good)}
+.option:disabled{cursor:default}
+.card .note{margin:0;font-weight:700;min-height:1.4em}
+.card .note.bad{color:var(--bad)}
+.card .note.good{color:var(--good)}
+.btn{font:600 1.2rem/1.1 var(--font-display);padding:16px 30px;border-radius:16px;border:2px solid var(--line);background:var(--surface);cursor:pointer;min-height:56px;align-self:center}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.big{text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px}
+.big p{margin:0;color:var(--muted)}
+
+canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation:none !important;transition:none !important}
+}
+</style>
+
+<main class="page">
+  <header>
+    <h1>Drive Home</h1>
+    <p class="sub">Drive from the supermarket to your house. At every stop, press the sentence that is correct. Then press the arrow button, or the space bar, to drive on.</p>
+  </header>
+
+  <div class="bar">
+    <fieldset>
+      <legend>Game</legend>
+      <div class="opts">
+        <span class="opt"><input type="radio" id="m-easy" name="mode" value="easy" checked><label for="m-easy">Simple</label></span>
+        <span class="opt"><input type="radio" id="m-hard" name="mode" value="hard"><label for="m-hard">Challenge, 3 lives</label></span>
+      </div>
+    </fieldset>
+    <div class="hearts" id="hearts" role="img" aria-label="" hidden></div>
+  </div>
+
+  <section class="scene" aria-label="The road home" id="scene">
+    <p class="status"><span id="stopLabel">At the supermarket</span><span id="modeLabel"></span></p>
+    <div class="mapwrap">
+      <svg id="map" viewBox="0 -60 600 840" role="img" aria-label="A winding road from the supermarket to home with ten stops along the way">
+        <path id="route" d="M50,110 C150,60 230,170 320,120 C400,75 480,70 540,110 C590,140 590,215 530,240 C450,275 380,200 290,245 C200,290 130,290 70,320 C20,345 20,420 80,445 C160,480 230,400 320,440 C410,480 470,470 530,520 C585,555 585,630 520,655 C440,690 360,620 270,660 C200,695 140,690 100,700" fill="none" stroke="none"/>
+        <g id="layer"></g>
+      </svg>
+    </div>
+    <div class="controls">
+      <p class="msg" id="msg" role="status" aria-live="polite"></p>
+      <button type="button" class="go nudge" id="goBtn"><span id="goLabel">Start driving</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
+      </button>
+    </div>
+  </section>
+</main>
+
+<div class="overlay" id="overlay" hidden>
+  <div class="card" id="card" role="dialog" aria-modal="true" aria-labelledby="cardTitle"></div>
+</div>
+<canvas id="fx" aria-hidden="true"></canvas>
+
+<script>
+(function(){
+  // Sentence bank. Add a line to grow it: "area|correct sentence|incorrect sentence".
+  // Each game picks 10 sentences from 10 different areas, so every game practises different grammar.
+  var RAW = [
+    "be|He is hungry.|He hungry.",
+    "be|She is tall.|She tall.",
+    "be|My shoes are new.|My shoes is new.",
+    "be|We are in the kitchen.|We is in the kitchen.",
+    "be|It is a sunny day.|Is a sunny day.",
+    "be|You are my best friend.|You is my best friend.",
+    "be|I am not tired.|I not tired.",
+    "be|They are my friends.|They is my friends.",
+    "be|We are happy.|We is happy.",
+    "be|He is a teacher.|He are a teacher.",
+    "be|I am eight years old.|I have eight years old.",
+    "be|I like pizza.|I am like pizza.",
+    "have|She has a dog.|She have a dog.",
+    "have|I have two sisters.|I has two sisters.",
+    "have|My dad has a car.|My dad have a car.",
+    "have|They have a big house.|They has a big house.",
+    "have|The dog has four legs.|The dog have four legs.",
+    "have|We have English on Monday.|We has English on Monday.",
+    "do|I don't like fish.|I doesn't like fish.",
+    "do|She doesn't eat meat.|She don't eat meat.",
+    "do|Do you like apples?|Does you like apples?",
+    "do|He doesn't like carrots.|He don't like carrots.",
+    "do|Does she play the piano?|Do she play the piano?",
+    "do|I don't have a pencil.|I doesn't have a pencil.",
+    "do|Do they live here?|Does they live here?",
+    "do|What does he want?|What does he wants?",
+    "do|I don't know.|I no know.",
+    "s3|He goes to school.|He go to school.",
+    "s3|My brother plays football.|My brother play football.",
+    "s3|She likes to sing.|She like to sing.",
+    "s3|My sister likes cats.|My sister like cats.",
+    "s3|The bus stops here.|The bus stop here.",
+    "s3|She reads every night.|She read every night.",
+    "s3|The baby cries a lot.|The baby cry a lot.",
+    "plural|The children are playing.|The childs are playing.",
+    "plural|I have a lot of friends.|I have a lot of friend.",
+    "plural|I have two brothers.|I have two brother.",
+    "plural|There are many boxes.|There are many boxs.",
+    "plural|Three men are here.|Three mans are here.",
+    "plural|I see two mice.|I see two mouses.",
+    "plural|The babies are asleep.|The babys are asleep.",
+    "plural|My feet are cold.|My foots are cold.",
+    "plural|I brush my teeth.|I brush my tooths.",
+    "article|An apple is a fruit.|A apple is a fruit.",
+    "article|I see an elephant.|I see a elephant.",
+    "article|She has an umbrella.|She has a umbrella.",
+    "article|He is an artist.|He is a artist.",
+    "article|I need a pencil.|I need an pencil.",
+    "article|I eat an egg for breakfast.|I eat a egg for breakfast.",
+    "prep|I go to school by bus.|I go to school with bus.",
+    "prep|The book is on the table.|The book is in the table.",
+    "prep|I wake up at seven o'clock.|I wake up in seven o'clock.",
+    "prep|My birthday is in May.|My birthday is at May.",
+    "prep|I am on the bus.|I am in the bus.",
+    "prep|I am at home.|I am in home.",
+    "prep|The ball is under the bed.|The ball is on under the bed.",
+    "prep|He is good at math.|He is good in math.",
+    "prep|I am afraid of dogs.|I am afraid from dogs.",
+    "prep|I am waiting for the bus.|I am waiting the bus.",
+    "prep|I go home after school.|I go to home after school.",
+    "prep|I play on Sunday.|I play in Sunday.",
+    "prep|I listen to music.|I listen music.",
+    "pron|Her name is Dana.|She name is Dana.",
+    "pron|Give it to me.|Give it to I.",
+    "pron|This bag is mine.|This bag is me.",
+    "pron|We love our teacher.|We love we teacher.",
+    "pron|They like their school.|They like them school.",
+    "pron|Can you help me?|Can you help I?",
+    "pron|I like her.|I like she.",
+    "poss|This is my book.|This is me book.",
+    "poss|This is Dan's bike.|This is Dan bike.",
+    "poss|My mom's car is red.|My mom car is red.",
+    "dem|These are my shoes.|This are my shoes.",
+    "dem|That is a nice bike.|That are a nice bike.",
+    "quest|Where is my bag?|Where my bag is?",
+    "quest|What is your name?|What are your name?",
+    "quest|Is she your sister?|Is she are your sister?",
+    "quest|Where do you live?|Where you live?",
+    "quest|How old are you?|How old you are?",
+    "quest|What time is it?|What is time?",
+    "quest|When is your birthday?|When your birthday is?",
+    "quest|Why are you sad?|Why you are sad?",
+    "cont|She is wearing a red dress.|She is wear a red dress.",
+    "cont|I am reading a book.|I reading a book.",
+    "cont|He is running fast.|He running fast.",
+    "cont|They are eating lunch.|They eating lunch.",
+    "cont|The baby is sleeping.|The baby is sleep.",
+    "cont|It is raining.|It raining.",
+    "cont|I am not watching TV.|I not watching TV.",
+    "cont|What are you doing?|What you doing?",
+    "past|Yesterday I played outside.|Yesterday I play outside.",
+    "past|We went to the beach.|We goed to the beach.",
+    "past|He ate his lunch.|He eated his lunch.",
+    "past|I saw a big dog.|I seed a big dog.",
+    "past|She went home.|She goed home.",
+    "past|I had a sandwich.|I haved a sandwich.",
+    "past|He broke a cup.|He breaked a cup.",
+    "past|They ran to school.|They runned to school.",
+    "past|I didn't see the dog.|I didn't saw the dog.",
+    "past|Did you eat lunch?|Did you ate lunch?",
+    "past|She didn't go to school.|She didn't went to school.",
+    "past|Yesterday it rained.|Yesterday it rain.",
+    "past|He wrote a story.|He writed a story.",
+    "past|We bought milk.|We buyed milk.",
+    "future|Tomorrow I will go to the park.|Tomorrow I went to the park.",
+    "future|I will visit my aunt.|I will visited my aunt.",
+    "future|It will rain tomorrow.|It will to rain tomorrow.",
+    "future|We are going to eat pizza.|We are going eat pizza.",
+    "modal|I can swim.|I can swims.",
+    "modal|He can't find his shoes.|He can't to find his shoes.",
+    "modal|Can I have some water, please?|Can I has some water, please?",
+    "modal|I can run fast.|I can to run fast.",
+    "modal|She must wear a hat.|She must wears a hat.",
+    "modal|Can I go to the toilet?|Can I going to the toilet?",
+    "modal|You should drink water.|You should drinks water.",
+    "comp|She is taller than me.|She is more tall than me.",
+    "comp|My bag is heavier than yours.|My bag is more heavy than yours.",
+    "comp|She is the tallest girl.|She is the most tall girl.",
+    "comp|This one is better.|This one is more good.",
+    "comp|Elephants are bigger than dogs.|Elephants are more big than dogs.",
+    "comp|He is as tall as me.|He is as taller as me.",
+    "quant|I want a glass of water.|I want a glass of waters.",
+    "quant|How many apples do you have?|How much apples do you have?",
+    "quant|There is some milk.|There is some milks.",
+    "quant|How much water do you want?|How many water do you want?",
+    "quant|I have a few friends.|I have a little friends.",
+    "quant|There is a lot of food.|There is a lot of foods.",
+    "quant|I have many books.|I have much books.",
+    "there|There are three cats.|There is three cats.",
+    "there|There is a bird in the tree.|There are a bird in the tree.",
+    "there|Are there any apples?|Is there any apples?",
+    "adv|She sings well.|She sings good.",
+    "adv|He runs fast.|He runs fastly.",
+    "adv|He is a good swimmer.|He is a well swimmer.",
+    "order|I have a red car.|I have a car red.",
+    "order|She has long hair.|She has hair long.",
+    "order|I always eat breakfast.|I eat always breakfast.",
+    "order|We often play outside.|We play often outside.",
+    "order|I like big dogs.|I like dogs big.",
+    "contr|It's cold today.|Its cold today.",
+    "contr|They're my cousins.|Their my cousins.",
+    "contr|It's a nice day.|Its a nice day.",
+    "inf|I like to draw.|I like draw to.",
+    "inf|I want to eat.|I want eat.",
+    "inf|Let's play a game.|Let's to play a game.",
+    "inf|I like swimming.|I like swim.",
+    "inf|I am going to school.|I am going school.",
+    "tense|I eat breakfast every day.|I eating breakfast every day.",
+    "tense|Tomorrow it will be sunny.|Tomorrow it is be sunny."
+  ];
+  var BANK = RAW.map(function(r){ var p = r.split('|'); return [p[1], p[2], p[0]]; });
+
+  function pickDeck(){
+    var all = shuffle(BANK), used = {}, out = [], i;
+    for (i = 0; i < all.length && out.length < STOPS; i++) {
+      if (!used[all[i][2]]) { used[all[i][2]] = true; out.push(all[i]); }
+    }
+    for (i = 0; i < all.length && out.length < STOPS; i++) {
+      if (out.indexOf(all[i]) < 0) out.push(all[i]);
+    }
+    return out;
+  }
+
+  var NAMES = ['the bus stop','the bakery','the park','the school','the bridge','the library','the playground','the ice cream shop','the toy shop','the flower shop'];
+  var STOPS = 10;
+  var LIVES = 3;
+  var SVGNS = 'http://www.w3.org/2000/svg';
+
+  var $ = function(id){ return document.getElementById(id); };
+  var S = { mode:'easy', deck:[], k:0, done:{}, lives:LIVES, best:0, busy:false, gen:0, opts:[], len:0 };
+  var reduce = false;
+  try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+
+  function shuffle(a){
+    var r = a.slice();
+    for (var i = r.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = r[i]; r[i] = r[j]; r[j] = t;
+    }
+    return r;
+  }
+
+  /* ---------- confetti ---------- */
+  var cv = $('fx'), ctx = cv.getContext('2d'), parts = [], raf = 0;
+  var COLORS = ['#E0245E','#F4B400','#12A874','#2F7BEF','#8A3FC4','#FF7A3D'];
+  function sizeCanvas(){
+    var d = window.devicePixelRatio || 1;
+    cv.width = Math.floor(window.innerWidth * d);
+    cv.height = Math.floor(window.innerHeight * d);
+    ctx.setTransform(d, 0, 0, d, 0, 0);
+  }
+  function burst(n, x, y, spread){
+    if (reduce) return;
+    for (var i = 0; i < n; i++) {
+      var a = -Math.PI / 2 + (Math.random() - 0.5) * (spread || 2.2);
+      var v = 7 + Math.random() * 9;
+      parts.push({
+        x:x, y:y, vx:Math.cos(a) * v, vy:Math.sin(a) * v,
+        w:6 + Math.random() * 7, h:4 + Math.random() * 6,
+        r:Math.random() * 6, vr:(Math.random() - 0.5) * 0.4,
+        c:COLORS[Math.floor(Math.random() * COLORS.length)], life:110 + Math.random() * 50
+      });
+    }
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+  function tick(){
+    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    parts = parts.filter(function(p){ return p.life > 0 && p.y < window.innerHeight + 30; });
+    parts.forEach(function(p){
+      p.vy += 0.28; p.vx *= 0.99;
+      p.x += p.vx; p.y += p.vy; p.r += p.vr; p.life--;
+      ctx.save();
+      ctx.translate(p.x, p.y); ctx.rotate(p.r);
+      ctx.globalAlpha = Math.min(1, p.life / 30);
+      ctx.fillStyle = p.c;
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+    });
+    raf = parts.length ? requestAnimationFrame(tick) : 0;
+    if (!raf) ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+  }
+  function cheer(big){
+    var w = window.innerWidth, h = window.innerHeight;
+    burst(big ? 90 : 60, w * 0.5, h * 0.55, 2.6);
+    if (big) {
+      setTimeout(function(){ burst(70, w * 0.2, h * 0.7, 1.4); }, 250);
+      setTimeout(function(){ burst(70, w * 0.8, h * 0.7, 1.4); }, 500);
+    }
+  }
+
+  /* ---------- the map ---------- */
+  var route = $('route');
+  var D = route.getAttribute('d');
+  var L = route.getTotalLength();
+  var samples = [];
+  for (var s0 = 0; s0 <= L; s0 += 8) {
+    var sp = route.getPointAtLength(s0);
+    samples.push({ x:sp.x, y:sp.y, s:s0 });
+  }
+
+  function rng(seed){
+    return function(){
+      seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+      var t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
+  function minRoad(x, y, skipFrom, skipTo){
+    var m = 1e9;
+    for (var i = 0; i < samples.length; i++) {
+      var q = samples[i];
+      if (skipFrom !== undefined && q.s >= skipFrom && q.s <= skipTo) continue;
+      var d = Math.sqrt((q.x - x) * (q.x - x) + (q.y - y) * (q.y - y));
+      if (d < m) m = d;
+    }
+    return m;
+  }
+
+  function stopLen(i){ return L * i / (STOPS + 1); }
+
+  function tangentAt(len){
+    var a = route.getPointAtLength(Math.max(0, len - 3));
+    var b = route.getPointAtLength(Math.min(L, len + 3));
+    var dx = b.x - a.x, dy = b.y - a.y, n = Math.sqrt(dx * dx + dy * dy) || 1;
+    return { x:dx / n, y:dy / n };
+  }
+
+  /* landmark drawings, each centred on x=0 with its base at y=0 */
+  function shop(wall, awn, extra){
+    var sc = '';
+    [-22, -11, 0, 11, 22].forEach(function(cx){ sc += '<circle cx="' + cx + '" cy="-30" r="4.6" fill="' + awn + '"/>'; });
+    return '<rect x="-28" y="-34" width="56" height="34" rx="3" fill="' + wall + '"/>' +
+      '<rect x="-31" y="-42" width="62" height="12" rx="3" fill="' + awn + '"/>' + sc +
+      '<rect x="-6" y="-20" width="12" height="20" fill="#7A5230"/>' +
+      '<rect x="-24" y="-24" width="13" height="11" fill="#BFE3F7"/><rect x="11" y="-24" width="13" height="11" fill="#BFE3F7"/>' + (extra || '');
+  }
+  var LM = {
+    bus: function(){
+      return '<rect x="-20" y="-36" width="40" height="6" rx="2" fill="#2F7BEF"/>' +
+        '<rect x="-17" y="-30" width="3" height="30" fill="#555C66"/><rect x="14" y="-30" width="3" height="30" fill="#555C66"/>' +
+        '<rect x="-13" y="-13" width="26" height="4" rx="1" fill="#8A5A44"/>' +
+        '<rect x="-2" y="-58" width="4" height="22" fill="#555C66"/><circle cx="0" cy="-60" r="8" fill="#F2C94C"/><rect x="-1.5" y="-64" width="3" height="8" fill="#16202E"/>';
+    },
+    bakery: function(){ return shop('#FBE3D3', '#E86A92', '<ellipse cx="0" cy="-50" rx="11" ry="6" fill="#D9A25B"/><path d="M-5 -52 l3 3 M0 -54 l3 3 M5 -52 l3 3" stroke="#B9803C" stroke-width="1.6" stroke-linecap="round"/>'); },
+    park: function(){
+      return '<rect x="-24" y="-12" width="4" height="12" fill="#8A5A44"/><circle cx="-22" cy="-28" r="17" fill="#3E9B57"/><circle cx="-26" cy="-32" r="9" fill="#58B56C"/>' +
+        '<rect x="22" y="-12" width="4" height="12" fill="#8A5A44"/><circle cx="24" cy="-32" r="14" fill="#3E9B57"/><circle cx="20" cy="-35" r="7" fill="#58B56C"/>' +
+        '<rect x="-12" y="-9" width="24" height="4" rx="1" fill="#A56A3F"/><rect x="-10" y="-5" width="3" height="5" fill="#6B4B3A"/><rect x="7" y="-5" width="3" height="5" fill="#6B4B3A"/>';
+    },
+    school: function(){
+      return '<rect x="-38" y="-36" width="76" height="36" fill="#E7B95F"/><polygon points="-42,-36 0,-60 42,-36" fill="#B5533C"/>' +
+        '<rect x="-7" y="-22" width="14" height="22" fill="#6B4B3A"/>' +
+        '<rect x="-30" y="-27" width="12" height="11" fill="#BFE3F7"/><rect x="18" y="-27" width="12" height="11" fill="#BFE3F7"/>' +
+        '<rect x="-1" y="-82" width="2.4" height="24" fill="#555C66"/><polygon points="1,-82 17,-76 1,-70" fill="#2F7BEF"/>';
+    },
+    library: function(){
+      var cols = '';
+      [-26, -13, 0, 13, 26].forEach(function(cx){ cols += '<rect x="' + (cx - 3) + '" y="-30" width="6" height="30" fill="#FFFFFF"/>'; });
+      return '<rect x="-36" y="-32" width="72" height="32" fill="#D3DBE7"/><polygon points="-40,-32 0,-54 40,-32" fill="#8E9DB3"/>' + cols +
+        '<rect x="-34" y="-3" width="68" height="3" fill="#B7C2D2"/>';
+    },
+    playground: function(){
+      return '<line x1="-34" y1="0" x2="-26" y2="-40" stroke="#697386" stroke-width="3"/><line x1="-6" y1="0" x2="-14" y2="-40" stroke="#697386" stroke-width="3"/>' +
+        '<line x1="-30" y1="-40" x2="-10" y2="-40" stroke="#697386" stroke-width="3.5"/>' +
+        '<line x1="-25" y1="-40" x2="-25" y2="-12" stroke="#697386" stroke-width="1.6"/><line x1="-15" y1="-40" x2="-15" y2="-12" stroke="#697386" stroke-width="1.6"/>' +
+        '<rect x="-27" y="-13" width="14" height="4" rx="1.5" fill="#E0245E"/>' +
+        '<polygon points="8,0 8,-34 16,-34 40,-2 40,0" fill="#F2C94C"/><rect x="6" y="-36" width="12" height="3" fill="#2F7BEF"/><line x1="10" y1="-6" x2="10" y2="-34" stroke="#697386" stroke-width="2"/>';
+    },
+    icecream: function(){ return shop('#FFF1F5', '#6CC7E8', '<polygon points="-6,-58 6,-58 0,-44" fill="#D9A25B"/><circle cx="0" cy="-62" r="8" fill="#F8B6D2"/><circle cx="-1" cy="-70" r="2.2" fill="#E0245E"/>'); },
+    toy: function(){ return shop('#E5F0FF', '#2F7BEF', '<rect x="-16" y="-54" width="11" height="11" fill="#F2C94C"/><rect x="-10" y="-64" width="11" height="11" fill="#E0245E"/><circle cx="12" cy="-48" r="6" fill="#12A874"/>'); },
+    flower: function(){
+      var f = '';
+      [[-20,-6,'#E0245E'],[-10,-8,'#F2C94C'],[10,-8,'#FFFFFF'],[20,-6,'#8A3FC4']].forEach(function(a){
+        f += '<circle cx="' + a[0] + '" cy="' + a[1] + '" r="4" fill="' + a[2] + '"/><circle cx="' + a[0] + '" cy="' + a[1] + '" r="1.5" fill="#F2C94C"/>';
+      });
+      return shop('#F5ECFF', '#B05CD6', '<rect x="-26" y="-10" width="52" height="4" fill="#6B4B3A" opacity=".0"/>' + f);
+    }
+  };
+  var KINDS = ['bus','bakery','park','school',null,'library','playground','icecream','toy','flower'];
+
+  function treeSVG(x, y, r){
+    return '<g transform="translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ')">' +
+      '<ellipse cx="0" cy="5" rx="' + (r * 0.8).toFixed(1) + '" ry="3.5" fill="#000" opacity=".12"/>' +
+      '<rect x="-2.2" y="-4" width="4.4" height="10" class="f-trunk"/>' +
+      '<circle cx="0" cy="' + (-r * 0.8).toFixed(1) + '" r="' + r + '" class="f-tree"/>' +
+      '<circle cx="' + (-r * 0.3).toFixed(1) + '" cy="' + (-r * 1.0).toFixed(1) + '" r="' + (r * 0.55).toFixed(1) + '" class="f-tree2"/></g>';
+  }
+
+  var anchors = [];   // landmark positions per stop
+  var carEl = null;
+
+  function buildScene(){
+    var rand = rng(11);
+    var out = '';
+    var i;
+
+    // grass patches
+    for (i = 0; i < 16; i++) {
+      out += '<ellipse cx="' + (rand() * 600).toFixed(0) + '" cy="' + (-60 + rand() * 840).toFixed(0) + '" rx="' + (40 + rand() * 60).toFixed(0) + '" ry="' + (16 + rand() * 26).toFixed(0) + '" class="f-grass2" opacity=".55"/>';
+    }
+
+    // Each stop: the number badge sits right beside the road at the exact spot where the car parks,
+    // and the landmark stands behind it.
+    var placed = [];
+    for (i = 1; i <= STOPS; i++) {
+      var sl = stopLen(i);
+      var pt = route.getPointAtLength(sl);
+      var tg = tangentAt(sl);
+      var nx = -tg.y, ny = tg.x;
+      var isBridge = KINDS[i - 1] === null;
+      var sides = (i % 2) ? [1, -1] : [-1, 1];
+      var dists = isBridge ? [0] : [84, 98, 112, 126, 70];
+      var chosen = null;
+      for (var di = 0; di < dists.length && !chosen; di++) {
+        for (var si = 0; si < 2 && !chosen; si++) {
+          var sd = sides[si];
+          var bx = pt.x + sd * nx * 40, by = pt.y + sd * ny * 40;
+          if (bx < 26 || bx > 574 || by < -30 || by > 754) continue;
+          if (minRoad(bx, by, sl - 120, sl + 120) < 38) continue;
+          var ax = bx, ay = by;
+          if (!isBridge) {
+            ax = pt.x + sd * nx * dists[di];
+            ay = pt.y + sd * ny * dists[di];
+            if (ax < 48 || ax > 552 || ay < 26 || ay > 738) continue;
+            if (minRoad(ax, ay, sl - 130, sl + 130) < 44) continue;
+            if (minRoad(ax, ay - 26, sl - 130, sl + 130) < 54) continue;
+            if (minRoad(ax, ay - 52, sl - 130, sl + 130) < 44) continue;
+            if (bx > ax - 61 && bx < ax + 61 && by > ay - 85 && by < ay + 25) continue;
+          }
+          var ok = true;
+          placed.forEach(function(p0){
+            if (Math.sqrt((p0.x - ax) * (p0.x - ax) + (p0.y - ay) * (p0.y - ay)) < 86) ok = false;
+            if (!isBridge && p0.bx > ax - 61 && p0.bx < ax + 61 && p0.by > ay - 85 && p0.by < ay + 25) ok = false;
+          });
+          if (ok) chosen = { x:ax, y:ay, bx:bx, by:by };
+        }
+      }
+      if (!chosen) {
+        var f = sides[0];
+        chosen = { x:pt.x + f * nx * 90, y:pt.y + f * ny * 90, bx:pt.x + f * nx * 40, by:pt.y + f * ny * 40 };
+      }
+      chosen.road = pt;
+      chosen.t = tg;
+      placed.push(chosen);
+      anchors[i] = chosen;
+    }
+
+    // pond under the bridge (stop 5)
+    var br = anchors[5].road;
+    var pond = { x:br.x, y:br.y, rx:92, ry:52 };
+    out += '<ellipse cx="' + pond.x.toFixed(1) + '" cy="' + pond.y.toFixed(1) + '" rx="' + pond.rx + '" ry="' + pond.ry + '" class="f-water"/>' +
+      '<ellipse cx="' + (pond.x - 14).toFixed(1) + '" cy="' + (pond.y - 8).toFixed(1) + '" rx="' + (pond.rx - 30) + '" ry="' + (pond.ry - 20) + '" class="f-water2" opacity=".6"/>';
+
+    // trees and bushes, away from the road, landmarks and pond
+    var scenery = [];
+    var tries = 0;
+    while (scenery.length < 46 && tries < 900) {
+      tries++;
+      var x = 14 + rand() * 572, y = -40 + rand() * 800;
+      var r = 10 + rand() * 8;
+      if (minRoad(x, y) < 36 + r * 0.4) continue;
+      if (Math.pow((x - pond.x) / (pond.rx + 20), 2) + Math.pow((y - pond.y) / (pond.ry + 20), 2) < 1) continue;
+      var near = false;
+      for (var a = 1; a <= STOPS; a++) {
+        if (Math.sqrt((anchors[a].x - x) * (anchors[a].x - x) + (anchors[a].y - y) * (anchors[a].y - y)) < 62) near = true;
+        if (Math.sqrt((anchors[a].bx - x) * (anchors[a].bx - x) + (anchors[a].by - y) * (anchors[a].by - y)) < 34) near = true;
+      }
+      if (near) continue;
+      if (x < 120 && y < 150) continue;       // supermarket
+      if (x < 130 && y > 640) continue;       // home
+      var tooClose = false;
+      for (var q = 0; q < scenery.length; q++) {
+        if (Math.sqrt((scenery[q].x - x) * (scenery[q].x - x) + (scenery[q].y - y) * (scenery[q].y - y)) < 30) { tooClose = true; break; }
+      }
+      if (tooClose) continue;
+      scenery.push({ x:x, y:y, r:r });
+    }
+    scenery.sort(function(p, q){ return p.y - q.y; });
+
+    // flowers
+    var fl = ['#E0245E','#F2C94C','#FFFFFF','#B05CD6','#FF8A3D'];
+    var nf = 0; tries = 0;
+    while (nf < 60 && tries < 900) {
+      tries++;
+      var fx = 10 + rand() * 580, fy = -50 + rand() * 820;
+      if (minRoad(fx, fy) < 34) continue;
+      if (Math.pow((fx - pond.x) / (pond.rx + 8), 2) + Math.pow((fy - pond.y) / (pond.ry + 8), 2) < 1) continue;
+      out += '<circle cx="' + fx.toFixed(0) + '" cy="' + fy.toFixed(0) + '" r="2.6" fill="' + fl[Math.floor(rand() * fl.length)] + '"/>';
+      nf++;
+    }
+
+    // road
+    out += '<path d="' + D + '" fill="none" class="s-edge" stroke-width="46" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '<path d="' + D + '" fill="none" class="s-road" stroke-width="38" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '<path d="' + D + '" fill="none" class="s-lane" stroke-width="3" stroke-dasharray="14 12" stroke-linecap="butt"/>';
+
+    // bridge rails
+    var t5 = anchors[5].t, n5x = -t5.y, n5y = t5.x;
+    [-1, 1].forEach(function(sd){
+      var x1 = br.x - t5.x * 44 + n5x * sd * 25, y1 = br.y - t5.y * 44 + n5y * sd * 25;
+      var x2 = br.x + t5.x * 44 + n5x * sd * 25, y2 = br.y + t5.y * 44 + n5y * sd * 25;
+      out += '<line x1="' + x1.toFixed(1) + '" y1="' + y1.toFixed(1) + '" x2="' + x2.toFixed(1) + '" y2="' + y2.toFixed(1) + '" stroke="#8A5A44" stroke-width="5" stroke-linecap="round"/>' +
+        '<line x1="' + x1.toFixed(1) + '" y1="' + y1.toFixed(1) + '" x2="' + x2.toFixed(1) + '" y2="' + y2.toFixed(1) + '" stroke="#C99467" stroke-width="2" stroke-linecap="round"/>';
+    });
+
+    // scenery
+    scenery.forEach(function(t){ out += treeSVG(t.x, t.y, t.r); });
+
+    // a little duck on the pond
+    out += '<g transform="translate(' + (pond.x + 52).toFixed(0) + ' ' + (pond.y + 26).toFixed(0) + ')"><ellipse cx="0" cy="0" rx="9" ry="6" fill="#F8D34A"/><circle cx="8" cy="-5" r="4.6" fill="#F8D34A"/><polygon points="12,-5 18,-3.500 12,-2.500" fill="#F08A2D"/><circle cx="9" cy="-6" r="1" fill="#16202E"/></g>';
+
+    // landmarks, back to front
+    var order = [];
+    for (i = 1; i <= STOPS; i++) if (KINDS[i - 1]) order.push(i);
+    order.sort(function(p, q){ return anchors[p].y - anchors[q].y; });
+    order.forEach(function(k){
+      var an = anchors[k];
+      out += '<g transform="translate(' + an.x.toFixed(1) + ' ' + an.y.toFixed(1) + ') scale(1.08)"><ellipse cx="0" cy="1" rx="36" ry="5" fill="#000" opacity=".12"/>' + LM[KINDS[k - 1]]() + '</g>';
+    });
+
+    // supermarket and home
+    out += '<g transform="translate(62 84) scale(1.35)"><ellipse cx="0" cy="1" rx="36" ry="5" fill="#000" opacity=".12"/>' +
+      shop('#FFFFFF', '#E9573E', '<rect x="-26" y="-56" width="52" height="12" rx="2" fill="#C23B25"/><text x="0" y="-47" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="sans-serif">MARKET</text>') + '</g>';
+    out += '<text x="62" y="18" text-anchor="middle" class="lbl">Supermarket</text>';
+
+    out += '<g transform="translate(44 750) scale(.92)"><ellipse cx="0" cy="1" rx="40" ry="5" fill="#000" opacity=".12"/>' +
+      '<rect x="22" y="-60" width="9" height="22" fill="#9A4B3A"/>' +
+      '<circle class="puff" cx="27" cy="-66" r="6" fill="#FFFFFF" opacity=".8"/><circle class="puff p2" cx="27" cy="-66" r="6" fill="#FFFFFF" opacity=".8"/>' +
+      '<rect x="-34" y="-40" width="68" height="40" fill="#F2C94C"/><polygon points="-42,-40 0,-72 42,-40" fill="#C8553D"/>' +
+      '<rect x="-7" y="-24" width="14" height="24" fill="#7A5230"/><circle cx="3" cy="-12" r="1.2" fill="#F2C94C"/>' +
+      '<rect x="-28" y="-32" width="14" height="13" fill="#BFE3F7"/><rect x="14" y="-32" width="14" height="13" fill="#BFE3F7"/>' +
+      '<rect x="-28" y="-20" width="14" height="3" fill="#C8553D"/><rect x="14" y="-20" width="14" height="3" fill="#C8553D"/></g>';
+    out += '<text x="44" y="772" text-anchor="middle" class="lbl">Home</text>';
+
+    // clouds
+    out += '<g class="cloud"><g class="f-cloud" opacity=".7"><ellipse cx="170" cy="190" rx="34" ry="12"/><ellipse cx="150" cy="184" rx="20" ry="11"/><ellipse cx="190" cy="183" rx="22" ry="12"/></g></g>' +
+      '<g class="cloud c2"><g class="f-cloud" opacity=".7"><ellipse cx="440" cy="380" rx="36" ry="12"/><ellipse cx="420" cy="374" rx="20" ry="11"/><ellipse cx="462" cy="373" rx="22" ry="12"/></g></g>' +
+      '<g class="cloud c3"><g class="f-cloud" opacity=".7"><ellipse cx="150" cy="600" rx="34" ry="12"/><ellipse cx="130" cy="594" rx="20" ry="11"/><ellipse cx="172" cy="593" rx="22" ry="12"/></g></g>';
+
+    // stop badges, right beside the spot where the car parks
+    for (i = 1; i <= STOPS; i++) {
+      out += '<g class="badge" id="badge' + i + '" transform="translate(' + anchors[i].bx.toFixed(1) + ' ' + anchors[i].by.toFixed(1) + ')"><circle class="glow" r="21"/><circle class="b" r="15"/><text>' + i + '</text></g>';
+    }
+
+    // the car
+    out += '<g id="car"><ellipse cx="0" cy="12" rx="22" ry="4" fill="#000" opacity=".18"/><g transform="scale(.74) translate(-39 -21)">' +
+      '<path d="M4 28 L4 21 Q4 17 8 17 L14 17 L23 6 Q25 4 28 4 L44 4 Q47 4 49 6 L56 16 L70 18 Q76 19 76 24 L76 28 Z" fill="#E0245E"/>' +
+      '<path d="M26 8 L43 8 L49 16 L18 16 Z" fill="#BFE3F7"/><line x1="34" y1="8" x2="34" y2="16" stroke="#E0245E" stroke-width="2"/>' +
+      '<rect x="3" y="20" width="4" height="5" rx="1" fill="#B0121F"/>' +
+      '<circle cx="20" cy="30" r="8" fill="#16202E"/><circle cx="20" cy="30" r="3.200" fill="#C9D2DE"/>' +
+      '<circle cx="60" cy="30" r="8" fill="#16202E"/><circle cx="60" cy="30" r="3.200" fill="#C9D2DE"/>' +
+      '<rect x="71" y="20" width="6" height="5" rx="1.500" fill="#FFE58A"/><rect x="72" y="26" width="5" height="2.500" rx="1" fill="#9AA3AF"/></g></g>';
+
+    $('layer').innerHTML = out;
+    carEl = $('car');
+  }
+
+  /* ---------- car movement ---------- */
+  function setCar(len, back){
+    var p = route.getPointAtLength(len);
+    var t = tangentAt(len);
+    var a = Math.atan2(t.y, t.x) * 180 / Math.PI;
+    if (back) a += 180;
+    var flip = Math.cos(a * Math.PI / 180) < 0 ? -1 : 1;
+    carEl.setAttribute('transform', 'translate(' + p.x.toFixed(1) + ' ' + p.y.toFixed(1) + ') rotate(' + a.toFixed(1) + ') scale(1 ' + flip + ')');
+    S.len = len;
+  }
+
+  function animate(to, back, done){
+    var from = S.len, g = S.gen, t0 = null;
+    var ms = Math.max(600, Math.abs(to - from) * 4.2);
+    S.busy = true;
+    if (reduce) { setCar(to, back); S.busy = false; done(); return; }
+    function step(ts){
+      if (g !== S.gen) return;
+      if (t0 === null) t0 = ts;
+      var t = Math.min(1, (ts - t0) / ms);
+      var e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      setCar(from + (to - from) * e, back);
+      if (t < 1) requestAnimationFrame(step); else { S.busy = false; done(); }
+    }
+    requestAnimationFrame(step);
+  }
+
+  /* ---------- UI helpers ---------- */
+  function paintBadges(){
+    for (var i = 1; i <= STOPS; i++) {
+      var b = $('badge' + i);
+      if (!b) continue;
+      b.setAttribute('class', 'badge' + (S.done[i] ? ' done' : '') + (i === S.k && !S.done[i] ? ' now' : ''));
+    }
+  }
+
+  function paintHearts(lostIndex){
+    var box = $('hearts');
+    var on = S.mode === 'hard';
+    box.hidden = !on;
+    if (!on) return;
+    box.setAttribute('aria-label', S.lives + ' of ' + LIVES + ' lives left');
+    var html = '<span class="lbl">Lives</span>';
+    for (var i = 0; i < LIVES; i++) {
+      var lost = i >= S.lives;
+      html += '<svg class="heart' + (lost ? ' lost' : '') + (i === lostIndex ? ' pulse' : '') + '" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 28 C4 19 3 12 6 8.500 C9 5 14 6 16 10 C18 6 23 5 26 8.500 C29 12 28 19 16 28 Z"/></svg>';
+    }
+    box.innerHTML = html;
+  }
+
+  function setLabel(t){ $('stopLabel').textContent = t; }
+  function setMsg(t){ $('msg').textContent = t || ''; }
+  function setGo(label, disabled, hidden){
+    $('goLabel').textContent = label;
+    var b = $('goBtn');
+    b.disabled = !!disabled;
+    b.hidden = !!hidden;
+  }
+
+  function readyForNext(){
+    var label = S.k === 0 ? (S.best > 0 || S.lives < LIVES ? 'Drive again' : 'Start driving') : (S.k === STOPS ? 'Drive home' : 'Next stop');
+    setGo(label, false, false);
+  }
+
+  function showMap(){
+    try { $('scene').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'nearest' }); } catch (e) {}
+    try { $('goBtn').focus({ preventScroll:true }); } catch (e) {}
+  }
+
+  /* ---------- game flow ---------- */
+  function newGame(){
+    S.gen++;
+    S.deck = pickDeck();
+    S.k = 0; S.done = {}; S.lives = LIVES; S.best = 0; S.busy = false;
+    closeOverlay(true);
+    setCar(0, false);
+    paintBadges();
+    paintHearts(-1);
+    $('modeLabel').textContent = S.mode === 'hard' ? 'Challenge: a wrong answer sends you back to the start' : 'Simple: try again until you get it right';
+    setLabel('At the supermarket');
+    setMsg('Press the arrow button or the space bar to start driving.');
+    readyForNext();
+  }
+
+  function goNext(){
+    if (S.busy) return;
+    var to = S.k + 1;
+    setMsg('');
+    setGo('Driving…', true, false);
+    animate(to > STOPS ? L : stopLen(to), false, function(){
+      S.k = to;
+      if (S.k > STOPS) { win(); return; }
+      paintBadges();
+      setLabel('Stop ' + S.k + ' of ' + STOPS + ': ' + NAMES[S.k - 1]);
+      setGo('Driving…', true, true);
+      openCard();
+    });
+  }
+
+  function openCard(){
+    var pair = S.deck[S.k - 1];
+    S.opts = shuffle([{ t:pair[0], ok:true }, { t:pair[1], ok:false }]);
+    var html = '<p class="eyebrow">Stop ' + S.k + ' of ' + STOPS + ' · ' + NAMES[S.k - 1] + '</p>' +
+      '<h2 id="cardTitle">Which sentence is correct?</h2>' +
+      '<p class="hint">' + (S.mode === 'hard' ? 'Careful. A wrong answer sends you back to the start.' : 'Press the correct sentence.') + '</p>' +
+      '<div class="options">' + S.opts.map(function(o, i){
+        return '<button type="button" class="option" data-i="' + i + '"><span class="mk" aria-hidden="true"></span><span>' + o.t + '</span></button>';
+      }).join('') + '</div><p class="note" id="note" role="status" aria-live="polite"></p>';
+    showOverlay(html);
+    var first = $('card').querySelector('.option');
+    if (first) { try { first.focus({ preventScroll:true }); } catch (e) {} }
+  }
+
+  function showOverlay(html){
+    var c = $('card');
+    c.classList.remove('closing');
+    c.innerHTML = html;
+    $('overlay').hidden = false;
+  }
+
+  function closeOverlay(immediate, cb){
+    var ov = $('overlay'), c = $('card');
+    if (ov.hidden) { if (cb) cb(); return; }
+    if (immediate || reduce) { ov.hidden = true; c.classList.remove('closing'); if (cb) cb(); return; }
+    c.classList.add('closing');
+    setTimeout(function(){ ov.hidden = true; c.classList.remove('closing'); if (cb) cb(); }, 210);
+  }
+
+  function lockOptions(){
+    Array.prototype.forEach.call($('card').querySelectorAll('.option'), function(b){ b.disabled = true; });
+  }
+
+  function onPick(i){
+    var o = S.opts[i];
+    var btns = $('card').querySelectorAll('.option');
+    var btn = btns[i];
+    var note = $('note');
+    if (o.ok) {
+      btn.classList.add('right');
+      btn.querySelector('.mk').textContent = '✓';
+      lockOptions();
+      note.className = 'note good';
+      note.textContent = 'Correct!';
+      cheer(false);
+      var g = S.gen;
+      setTimeout(function(){
+        if (g !== S.gen) return;
+        closeOverlay(false, function(){
+          if (g !== S.gen) return;
+          S.done[S.k] = true;
+          S.best = Math.max(S.best, S.k);
+          paintBadges();
+          setLabel('Stop ' + S.k + ' of ' + STOPS + ' done');
+          setMsg(S.k === STOPS ? 'Great! Press the arrow or the space bar to drive home.' : 'Great! Press the arrow or the space bar to drive to the next stop.');
+          readyForNext();
+          showMap();
+        });
+      }, reduce ? 600 : 850);
+      return;
+    }
+    if (S.mode === 'easy') {
+      btn.classList.add('wrong', 'shake');
+      btn.querySelector('.mk').textContent = '✗';
+      btn.disabled = true;
+      note.className = 'note bad';
+      note.textContent = 'Not quite. Try the other one.';
+      return;
+    }
+    // challenge: wrong answer
+    var lostIdx = S.lives - 1;
+    S.lives--;
+    paintHearts(lostIdx);
+    S.opts.forEach(function(opt, j){
+      var b = btns[j];
+      b.disabled = true;
+      if (opt.ok) { b.classList.add('right'); b.querySelector('.mk').textContent = '✓'; }
+      else { b.classList.add('wrong'); b.querySelector('.mk').textContent = '✗'; }
+    });
+    note.className = 'note bad';
+    note.textContent = S.lives > 0 ? 'Oops! The green one is correct. Back to the start. Lives left: ' + S.lives + '.' : 'Oops! The green one is correct. You have no lives left.';
+    var b2 = document.createElement('button');
+    b2.type = 'button';
+    b2.className = 'btn primary';
+    b2.id = 'afterWrong';
+    b2.textContent = S.lives > 0 ? 'Back to the start' : 'See my result';
+    $('card').appendChild(b2);
+    try { b2.focus({ preventScroll:true }); } catch (e) {}
+  }
+
+  function afterWrong(){
+    var g = S.gen;
+    var reached = 0;
+    for (var i = 1; i <= STOPS; i++) if (S.done[i]) reached = i;
+    S.best = Math.max(S.best, reached);
+    closeOverlay(false, function(){
+      if (g !== S.gen) return;
+      if (S.lives <= 0) { gameOver(); return; }
+      S.k = 0; S.done = {};
+      paintBadges();
+      setLabel('Driving back to the supermarket');
+      setGo('Driving…', true, false);
+      animate(0, true, function(){
+        if (g !== S.gen) return;
+        setCar(0, false);
+        setLabel('At the supermarket');
+        setMsg('Back at the start. Press the arrow to try again.');
+        readyForNext();
+        showMap();
+      });
+    });
+  }
+
+  function gameOver(){
+    setGo('Play again', false, false);
+    setMsg('');
+    setLabel('Out of lives');
+    var n = S.best;
+    showOverlay('<div class="big"><h2 id="cardTitle">Game over</h2><p>' +
+      (n > 0 ? 'You got ' + n + ' stop' + (n === 1 ? '' : 's') + ' right in a row. Great try!' : 'Good try! Ready for another go?') +
+      '</p><button type="button" class="btn primary" id="again">Play again</button></div>');
+    try { $('again').focus({ preventScroll:true }); } catch (e) {}
+  }
+
+  function win(){
+    paintBadges();
+    setGo('Play again', false, false);
+    setMsg('You made it home!');
+    setLabel('You are home!');
+    cheer(true);
+    var extra = S.mode === 'hard' ? '<p>Lives left: ' + S.lives + ' of ' + LIVES + '.</p>' : '';
+    showOverlay('<div class="big"><h2 id="cardTitle">You are home!</h2><p>All ' + STOPS + ' stops done.</p>' + extra +
+      '<button type="button" class="btn primary" id="again">Play again</button></div>');
+    try { $('again').focus({ preventScroll:true }); } catch (e) {}
+  }
+
+  /* ---------- events ---------- */
+  $('card').addEventListener('click', function(e){
+    var t = e.target.closest ? e.target.closest('button') : null;
+    if (!t) return;
+    if (t.id === 'again') { newGame(); return; }
+    if (t.id === 'afterWrong') { afterWrong(); return; }
+    if (t.classList.contains('option') && !t.disabled) onPick(+t.dataset.i);
+  });
+
+  $('goBtn').addEventListener('click', function(){
+    if (S.k > STOPS || (S.mode === 'hard' && S.lives <= 0)) { newGame(); return; }
+    if ($('goLabel').textContent === 'Play again') { newGame(); return; }
+    goNext();
+  });
+
+  document.addEventListener('keydown', function(e){
+    if (e.code !== 'Space' && e.key !== ' ') return;
+    var tg = e.target;
+    if (tg && tg !== document.body && tg !== document.documentElement) return;   // a focused button handles its own space press
+    var b = $('goBtn');
+    if (!$('overlay').hidden || b.disabled || b.hidden) return;
+    e.preventDefault();
+    b.click();
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll('input[name="mode"]'), function(el){
+    el.addEventListener('change', function(){ S.mode = el.value; newGame(); try { $('goBtn').focus({ preventScroll:true }); } catch (e) {} });
+  });
+
+  window.addEventListener('resize', sizeCanvas);
+  sizeCanvas();
+  buildScene();
+  newGame();
+})();
+</script>
+
+</body></html>
